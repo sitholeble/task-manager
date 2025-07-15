@@ -19,12 +19,20 @@ export class TaskListComponent implements OnInit {
   }
 
   loadTasks(): void {
+    console.log('TaskListComponent: Loading tasks...');
     this.taskService.getTasks().subscribe({
-      next: (tasks) => {
+      next: (tasks: Task[]) => {
+        console.log('TaskListComponent: Tasks loaded successfully:', tasks);
         this.tasks = tasks;
       },
-      error: (error) => {
-        console.error('Error loading tasks:', error);
+      error: (error: any) => {
+        console.error('TaskListComponent: Error loading tasks:', error);
+        console.error('Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          url: error.url
+        });
       }
     });
   }
