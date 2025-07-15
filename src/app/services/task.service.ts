@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, switchMap } from 'rxjs';
 import { Task, TaskRequest } from '../models/task.model';
 
@@ -15,10 +15,6 @@ export class TaskService {
     return this.http.get<Task[]>(this.apiUrl);
   }
 
-  getTaskById(id: number): Observable<Task> {
-    return this.http.get<Task>(`${this.apiUrl}/${id}`);
-  }
-
   addTask(title: string): Observable<Task> {
     const taskRequest: TaskRequest = {
       title: title,
@@ -27,17 +23,13 @@ export class TaskService {
     return this.http.post<Task>(this.apiUrl, taskRequest);
   }
 
-  updateTask(id: number, taskRequest: TaskRequest): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, taskRequest);
-  }
-
-  toggleTask(id: number, completed: boolean): Observable<Task> {
+  toggleTask(id: number): Observable<Task> {
     // First get the current task to preserve the title
     return this.http.get<Task>(`${this.apiUrl}/${id}`).pipe(
       switchMap(task => {
         const taskRequest: TaskRequest = {
           title: task.title,
-          completed: completed
+          completed: !task.completed
         };
         return this.http.put<Task>(`${this.apiUrl}/${id}`, taskRequest);
       })
