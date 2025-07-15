@@ -15,16 +15,21 @@ export class TaskFormComponent {
   constructor(private taskService: TaskService) {}
 
   addTask(): void {
+    console.log('addTask() method called with title:', this.title);
     if (this.title.trim()) {
+      console.log('Adding task to service...');
       this.taskService.addTask(this.title).subscribe({
-        next: () => {
+        next: (task) => {
+          console.log('Task added successfully:', task);
           this.title = '';
           this.taskAdded.emit(); // Notify parent to refresh tasks
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error adding task:', error);
         }
       });
+    } else {
+      console.log('Title is empty, not adding task');
     }
   }
 }
