@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../services/task.service';
 
@@ -10,14 +10,21 @@ import { TaskService } from '../../services/task.service';
 })
 export class TaskFormComponent {
   title: string = '';
+  @Output() taskAdded = new EventEmitter<void>();
 
   constructor(private taskService: TaskService) {}
 
-  addTask() {
+  addTask(): void {
     if (this.title.trim()) {
-      this.taskService.addTask(this.title);
-      this.title = '';
+      this.taskService.addTask(this.title).subscribe({
+        next: () => {
+          this.title = '';
+          this.taskAdded.emit(); // Notify parent to refresh tasks
+        },
+        error: (error) => {
+          console.error('Error adding task:', error);
+        }
+      });
     }
   }
-
 }

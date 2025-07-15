@@ -1,30 +1,50 @@
 import { Injectable } from '@angular/core';
-import { Task } from '../models/task.model';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, switchMap } from 'rxjs';
+import { Task, TaskRequest } from '../models/task.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TaskService {
-  private tasks: Task[] = [];
-  private nextId = 1;
+  private apiUrl = 'http://localhost:8081/tasks';
 
-  getTasks(): Task[] {
-    return this.tasks;
+  constructor(private http: HttpClient) { }
+
+  getTasks(): Observable<Task[]> {
+    return this.http.get<Task[]>(this.apiUrl);
   }
 
-  addTask(title: string): void {
-    this.tasks.push({ id: this.nextId++, title, completed: false});
-  } 
-
-  toggleTask(id: number): void {
-    const task = this.tasks.find(t => t.id === id);
-    if (task) {
-      task.completed = !task.completed;
-    }
+  getTaskById(id: number): Observable<Task> {
+    return this.http.get<Task>(`${this.apiUrl}/${id}`);
   }
 
-  deleteTask(id: number): void {
-    this.tasks = this.tasks.filter(t => t.id !== id);
+  addTask(title: string): Observable<Task> {
+    const taskRequest: TaskRequest = {
+      title: title,
+      completed: false
+    };
+    return this.http.post<Task>(this.apiUrl, taskRequest);
   }
-  
+
+  updateTask(id: number, taskRequest: TaskRequest): Observable<Task> {
+    return this.http.put<Task>(`${this.apiUrl}/${id}`, taskRequest);
+  }
+
+  toggleTask(id: number, completed: boolean): Observable<Task> {
+    // First get the current task to preserve the title
+    return this.http.get<Task>(`${this.apiUrl}/${id}`).pipe(
+      switchMap(task => {
+        const taskRequest: TaskRequest = {
+          title: task.title,
+          completed: completed
+        };
+        return this.http.put<Task>(`${this.apiUrl}/${id}`, taskRequest);
+      })
+    );
+  }
+
+  deleteTask(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

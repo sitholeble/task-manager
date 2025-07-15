@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TaskService } from '../../services/task.service';
 import { Task } from '../../models/task.model';
@@ -9,19 +9,51 @@ import { Task } from '../../models/task.model';
   imports: [CommonModule],
   standalone: true
 })
-export class TaskListComponent {
+export class TaskListComponent implements OnInit {
+  tasks: Task[] = [];
+
   constructor(private taskService: TaskService) {}
 
-  get tasks(): Task[] {
-    return this.taskService.getTasks();
+  ngOnInit(): void {
+    this.loadTasks();
   }
 
-  toggle (id: number) {
-    this.taskService.toggleTask(id);
+  loadTasks(): void {
+    this.taskService.getTasks().subscribe({
+      next: (tasks) => {
+        this.tasks = tasks;
+      },
+      error: (error) => {
+        console.error('Error loading tasks:', error);
+      }
+    });
   }
 
-  delete(id: number) {
-    this.taskService.deleteTask(id);
+  toggle(id: number): void {
+    const task = this.tasks.find(t => t.id === id);
+    if (task) {
+      this.taskService.toggleTask(id, !task.completed).subscribe({
+        next: (updatedTask) => {
+          const index = this.tasks.findIndex(t => t.id === id);
+          if (index !== -1) {
+            this.tasks[index] = updatedTask;
+          }
+        },
+        error: (error) => {
+          console.error('Error toggling task:', error);
+        }
+      });
+    }
   }
 
+  delete(id: number): void {
+    this.taskService.deleteTask(id).subscribe({
+      next: () => {
+        this.tasks = this.tasks.filter(t => t.id !== id);
+      },
+      error: (error) => {
+        console.error('Error deleting task:', error);
+      }
+    });
+  }
 }

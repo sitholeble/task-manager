@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { TaskFormComponent } from './components/task-form/task-form.component';
 import { TaskListComponent } from './components/task-list/task-list.component';
 
@@ -11,4 +11,11 @@ import { TaskListComponent } from './components/task-list/task-list.component';
 })
 export class AppComponent {
   title = 'task-manager';
+  @ViewChild(TaskListComponent) taskList!: TaskListComponent;
+
+  onTaskAdded(): void {
+    if (this.taskList) {
+      this.taskList.loadTasks();
+    }
+  }
 }
